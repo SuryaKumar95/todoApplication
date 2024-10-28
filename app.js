@@ -28,7 +28,7 @@ const initializeDbAndServer = async () => {
 
 initializeDbAndServer()
 
-const convertTdoDbObjectToResponseObject = dbObject => {
+const convertTodoDbObjectToResponseObject = dbObject => {
   return {
     id: dbObject.id,
     todo: dbObject.todo,
@@ -37,7 +37,7 @@ const convertTdoDbObjectToResponseObject = dbObject => {
   }
 }
 
-const hasPriorityAndStatsuProperties = requestQuery => {
+const hasPriorityAndStatusProperties = requestQuery => {
   return (
     requestQuery.priority !== undefined && requestQuery.status !== undefined
   )
@@ -58,7 +58,7 @@ app.get('/todos/', async (request, response) => {
   const {search_q = '', priority, status} = request.query
 
   switch (true) {
-    case hasPriorityAndStatsuProperties(request.query):
+    case hasPriorityAndStatusProperties(request.query):
       getTodosQuery = `
       SELECT
         *
@@ -67,7 +67,7 @@ app.get('/todos/', async (request, response) => {
       WHERE
         todo LIKE '%${search_q}%'
         AND status = '${status}'
-        AND priority = ${priority}';`
+        AND priority = '${priority}';`
       break
     case hasPriorityProperty(request.query):
       getTODOQuery = `
@@ -111,9 +111,9 @@ app.get('/todos/:todoId/', async (request, response) => {
     FROM 
       todo 
     WHERE 
-      todo_id = ${todoId};`
+      id = ${todoId};`
   const todo = await database.get(getTodoQuery)
-  response.send(convertTdoDbObjectToResponseObject(todo))
+  response.send(convertTodoDbObjectToResponseObject(todo))
 })
 
 //API 3
@@ -121,7 +121,7 @@ app.post('/todos/', async (request, response) => {
   const {id, todo, priority, status} = request.body
   const postTodoQuery = `
   INSERT INTO
-    movie ( id, todo, priority, status)
+    todo (id, todo, priority, status)
   VALUES
     (${id}, '${todo}', '${priority}', '${status}');`
   await database.run(postTodoQuery)
@@ -148,7 +148,7 @@ app.put('/todos/:todoId/', async (request, response) => {
   SELECT
     *
   FROM todo
-  WHERE todo_id = ${todoId};`
+  WHERE id = ${todoId};`
   const previousTodoQuery = await database.get(previousTodoQuery)
 
   const {
@@ -164,7 +164,7 @@ app.put('/todos/:todoId/', async (request, response) => {
       status = '${status}',
       priority = '${priority}'
     WHERE
-      todo_id = ${todoId};`
+      id = ${todoId};`
   await database.run(updateTodoQuery)
   response.send(`${updateColumn} Updated`)
 })
@@ -176,8 +176,8 @@ app.delete('/todos/:todoId/', async (request, response) => {
   DELETE FROM
     todo
   WHERE
-    todo_id = ${todoId};`
-  await database.run(deleteMovieQuery)
+    id = ${todoId};`
+  await database.run(deleteTodoQuery)
   response.send('Todo Deleted')
 })
 
